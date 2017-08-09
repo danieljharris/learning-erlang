@@ -42,7 +42,7 @@ index(Element, [Head|Tail], Page, Output) ->
 		false -> index(Element, Tail, Page + 1, Output)
 	end.
 
-readable({Head,Tail}) -> Head ++ " " ++ compress_link(compress(Tail)).
+readable({Head,Tail}) -> Head ++ " " ++ compress_pretty(compress_link(compress(Tail))).
 
 %%Compresser [1,1,1,2,2,5,7,9,9] -> [1,2,5,7,9]
 compress([]) -> [];
@@ -80,8 +80,11 @@ compress_link([Head,Next|Tail], Range, Output) ->
 		(Next - Head >= 1) -> compress_link([Next|Tail], {0, 0}, Output ++ [{element(1, Range),Head}])
 	end.
 
-% compress_pretty([]) -> [];
-% compress_pretty()
+compress_pretty([]) -> [];
+compress_pretty([Head|Tail]) when tuple_size(Head) == 1 -> char_to_integer(element(1,Head)) ++ "," ++ compress_pretty(Tail);
+compress_pretty([Head|Tail]) when tuple_size(Head) == 2 ->
+	char_to_integer(  element(1,Head)) ++ "-" ++ char_to_integer(element(2,Head)  )
+	++ "," ++ compress_pretty(Tail).
 
 
 
@@ -96,7 +99,7 @@ compress_link([Head,Next|Tail], Range, Output) ->
 % compress_to_list(Num, List) when lists:nth(length(List), List) .
 
 %%Use shell:string(false).
-%char_to_integer(Char) -> lists:flatten(io_lib:format("~p", [Char])).
+char_to_integer(Char) -> lists:flatten(io_lib:format("~p", [Char])).
 
 
 
