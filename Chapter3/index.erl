@@ -1,8 +1,9 @@
 -module(index).
 -export([makeDoc/1]).
 -export([makeRaw/1]).
--import(lists,[flatten/1]).
--import(io_lib,[format/1]).
+% -import(lists,[flatten/1]).
+% -import(io_lib,[format/1]).
+-import(lists,[nth/2]).
 
 makeDoc([]) -> [];
 makeDoc([Head|Tail]) -> makeDoc([Head|Tail], []).
@@ -41,10 +42,12 @@ index(Element, [Head|Tail], Page, Output) ->
 		false -> index(Element, Tail, Page + 1, Output)
 	end.
 
-readable({Head,Tail}) -> Head ++ "\s" ++ compress(Tail).
+readable({Head,Tail}) -> Head ++ " " ++ compress_link(compress(Tail)).
 
+%%Compresser [1,1,1,2,2,5,7,9,9] -> [1,2,5,7,9]
 compress([]) -> [];
 compress(List) -> compress(List, []).
+
 compress([], Output) -> Output;
 compress(List, Output) when length(List) == 1 -> Output ++ List;	
 compress([Head|Tail], _) when (Tail - Head) =< 1 -> [];
@@ -52,9 +55,55 @@ compress([Head|Tail], Output) when (Tail - Head) >= 1 -> Output ++ [Head];
 compress([Head,Next|Tail], Output) ->
 	if
 		(Next - Head) == 0 -> compress([Head|Tail], Output);
-		(Next - Head) == 1 -> compress([Next|Tail], Output ++ [Head] ++ ["+"] );
+		% (Next - Head) == 1 -> compress([Next|Tail], Output ++ [Head] ++ ["-"] );
 		(Next - Head) >= 1 -> compress([Next|Tail], Output ++ [Head])
 	end.
 
+
+%%Linker [1,2,5,8,9,10] -> [{1,2},{5},{8,10}]
+compress_link([]) -> [];
+compress_link(List) -> compress_link(List, {0, 0}, []).
+
+compress_link([], _, Output) -> Output;
+compress_link([Head,Next], Range, Output) -> 
+	if
+		(Next - Head == 1) and (Range == {0, 0}) -> Output ++ [{Head, Next}];
+		(Next - Head == 1) -> Output ++ [{element(1, Range), Next}];
+		(Next - Head >= 1) and (Range /= {0, 0}) -> Output ++ [{element(1, Range),Head},{Next}];
+		(Next - Head >= 1) -> Output ++ [{Head},{Next}]
+	end;
+compress_link([Head,Next|Tail], Range, Output) ->
+	if
+		(Next - Head == 1) and (Range == {0, 0}) -> compress_link([Next|Tail], {Head, 0}, Output);
+		(Next - Head == 1) -> compress_link([Next|Tail], {element(1, Range), Next}, Output);
+		(Next - Head >= 1) and (Range == {0, 0}) -> compress_link([Next|Tail], {0, 0}, Output ++ [{Head}]);
+		(Next - Head >= 1) -> compress_link([Next|Tail], {0, 0}, Output ++ [{element(1, Range),Head}])
+	end.
+
+% compress_pretty([]) -> [];
+% compress_pretty()
+
+
+
+
+
+
+%compress_link(Item, _, Output) -> Output ++ [{Item}].
+
+
+% compress_to_list(Num,[],_) -> Num;
+% compress_to_list(Num, List) when lists:nth(length(List) - 2, List) == "-" -> compress_to_list(Num, List);
+% compress_to_list(Num, List) when lists:nth(length(List), List) .
+
 %%Use shell:string(false).
 %char_to_integer(Char) -> lists:flatten(io_lib:format("~p", [Char])).
+
+
+
+
+
+
+
+
+
+
