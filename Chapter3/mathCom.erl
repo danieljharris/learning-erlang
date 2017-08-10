@@ -69,7 +69,7 @@ parser_skip([_|Tail], Needed) -> parser_skip(Tail, Needed - 1).
 
 %Scanns for numbers longer than one digit
 parser_read_full_number([]) -> [];
-parser_read_full_number([Head|Tail]) ->
+parser_read_full_number([Head|_]) ->
 	case [Head] of
 		"+" -> [];
 		"-" -> [];

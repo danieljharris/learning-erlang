@@ -1,6 +1,8 @@
 -module(index).
 -export([makeDoc/1]).
 -export([makeRaw/1]).
+-export([index/2]).
+-export([readable/1]).
 -import(lists,[flatten/1]).
 -import(io_lib,[format/1]).
 -import(lists,[nth/2]).
