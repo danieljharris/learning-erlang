@@ -1,5 +1,4 @@
 
-.DS_Store
 ScratchPad.txt
-.beam
-Chapter4/.DS_Store
+*.beam
+*.DS_Store
