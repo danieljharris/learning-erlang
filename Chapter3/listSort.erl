@@ -43,7 +43,7 @@ quick_more_output([Head|Tail], Min, Output) ->
 
 
 
-mergesort(List) when length(List) =< 1 -> List;
+mergesort([List]) -> List;
 mergesort(List) ->
 	merge(
 		mergesort(mergesort_split_bottom(List, length(List) div 2, 0)),
