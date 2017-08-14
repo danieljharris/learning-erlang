@@ -4,10 +4,10 @@
 init(Db) -> Db.
 terminate(Db) -> {db, Db}.
 
-handle_event(Event, Db) ->
-	case lists:keysearch( Event, 1, Db ) of
+handle_event({Type, _Id, Description}, Db) ->
+	case lists:keysearch( {Type, Description}, 1, Db ) of
 		false ->
-			{ok, Db ++ [{Event, 1}]};
-		{ Event, Data } ->
-			lists:keyreplace(Event, 1, Db, {Event, Data + 1})
+			Db ++ [ {{Type, Description}, 1}] ;
+		{ value, { {Type, Description}, Data }} ->
+			lists:keyreplace(  {Type, Description}, 1, Db, { {Type, Description}, Data + 1}  )
 	end.

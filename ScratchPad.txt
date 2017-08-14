@@ -89,8 +89,25 @@ put   into   a   range.
 
 
 
+lists:keyreplace({clear, cabinet_open}, 1, [{{clear, cabinet_open}, 1},{{raise, cabinet_open}, 2}], {{clear, cabinet_open}, 2}).
 
 
+
+
+c(stats_handler).
+
+event_manager:start(alarm, [{stats_handler, []}]).
+
+event_manager:send_event(alarm, {raise_alarm, 10, cabinet_open}).
+
+event_manager:get_data(alarm, stats_handler).
+
+event_manager:send_event(alarm, {clear_alarm, 10, cabinet_open}).
+
+
+
+
+lists:keysearch( {raise_alarm, cabinet_open}, 1, [{{raise_alarm,cabinet_open},1},{{close_alarm,cabinet_open},1}]).
 
 
 
