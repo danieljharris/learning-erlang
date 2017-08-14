@@ -4,6 +4,8 @@
 -export([data_Type/1]).
 -export([contains/2]).
 
+%Code Examples
+
 is_even([]) -> [];
 is_even([Head|Tail]) when Head rem 2 == 0 ->[Head|is_even(Tail)];
 is_even([_|Tail]) -> is_even(Tail);

@@ -37,7 +37,7 @@ reverse_for(Start, End) -> reverse( for(Start, End) ).
 
 %%Exercise 3-7: Using Library Modules
 new() 					-> [].
-destroy(_) 				-> 0.
+destroy(_) 				-> ok.
 write(Key, Element, Db) -> lists:append([{Key, Element}], Db).
 delete(Key, Db) 		-> lists:delete( read(Key, Db), Db ).
 read(Key, Db) 			-> lists:keyfind(Key, 1, Db).
