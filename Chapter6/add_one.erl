@@ -1,7 +1,6 @@
 -module(add_one).
 -export([start/0, request/1, loop/0]).
 
-
 start() ->
 	register(add_one, spawn_link(add_one, loop, [])).
 
@@ -19,7 +18,3 @@ loop() ->
 		Pid ! {result, Msg + 1}
 	end,
 	loop().
-
-
-
-
