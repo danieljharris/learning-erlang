@@ -2,7 +2,7 @@
 -export([go/0, pinger/0]).
 -export([start/0, print/1, stop/0, server_fun/0]).
 
-%%Exercise 3-1: An Echo Server
+%%Exercise 4-1: An Echo Server
 
 
 go() -> register(echo, spawn(echoServer, pinger, [])).
