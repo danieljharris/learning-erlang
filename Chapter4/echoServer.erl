@@ -2,8 +2,6 @@
 -export([go/0, pinger/0]).
 -export([start/0, print/1, stop/0, server_fun/0]).
 
-%%Exercise 4-1: An Echo Server
-
 
 go() -> register(echo, spawn(echoServer, pinger, [])).
 
@@ -17,7 +15,7 @@ pinger() ->
 	end.
 
 
-
+%%Exercise 4-1
 start() -> register(msg_server, spawn(echoServer, server_fun, [])).
 print(Message) -> msg_server!{message, Message}.
 stop() -> msg_server!stop.
