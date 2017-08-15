@@ -37,10 +37,9 @@ concatenate([Head|Tail], Output) -> concatenate(Tail, Output ++ Head).
 % flatten_output(Other, Output) 		-> Output ++ [Other].
 
 
+% Best version:
+flatten(List) -> flatten(List, []).
 
-flatten(List) 						-> flatten_output(List,[]).
-
-flatten_output([], []) 				-> {error, list_empty};
-flatten_output([], Output) 			-> Output;
-flatten_output([Head|Tail], Output) -> flatten_output(Tail,flatten_output(Head,Output));
-flatten_output(Other, Output) 		-> Output ++ [Other].
+flatten([Head|Tail], Output) when is_list(Head) -> flatten(Head, flatten(Tail, Output));
+flatten([Head|Tail], Output) 				    -> [ Head|flatten(Tail, Output) ];
+flatten([], Output) 					        -> Output.
