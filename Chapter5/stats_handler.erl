@@ -7,7 +7,7 @@ terminate(Db) -> {db, Db}.
 handle_event({Type, _Id, Description}, Db) ->
 	case lists:keysearch( {Type, Description}, 1, Db ) of
 		false ->
-			Db ++ [ {{Type, Description}, 1}] ;
+			[ {{Type, Description}, 1} | Db ];
 		{ value, { {Type, Description}, Data }} ->
 			lists:keyreplace(  {Type, Description}, 1, Db, { {Type, Description}, Data + 1}  )
 	end.
