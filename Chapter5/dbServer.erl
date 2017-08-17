@@ -5,10 +5,10 @@
 %%Interface
 start() -> register(db, spawn(dbServer, loop, [[]])).
 
-write	(Key, Element) 	-> call(write, 	{Key, Element}	).
-delete	(Key) 			-> call(delete, Key				).
-read	(Key) 			-> call(read, 	Key				).
-match	(Element) 		-> call(match, 	Element			).
+write	(Key, Element)	-> call(write, 	{Key, Element}	).
+delete	(Key)			-> call(delete, Key				).
+read	(Key)			-> call(read, 	Key				).
+match	(Element)		-> call(match, 	Element			).
 
 stop() ->
 	db ! {stop, self()},
@@ -33,40 +33,28 @@ reply(To, Msg) ->
 	To ! {reply, Msg}.
 
 
+handle_msg(write, Message, Data)	-> {ok, [Message | Data]};
+handle_msg(delete, Message, Data)	-> {ok, lists:keydelete(Message, 1, Data)};
+
+handle_msg(read, Message, Data)		->
+	Result = lists:keyfind(Message, 1, Data),
+	case Result of
+		false -> {{error, instance}, Data};
+		{_Key, Element} -> {{ok, Element}, Data}
+	end;
+
+handle_msg(match, Message, Data)	-> {[Key || {Key, Element} <- Data, Element == Message ], Data}.
 
 
-
-
-
-handle_msg(Type, Message, Data) ->
-	case Type of
-		write ->
-			{Key, Element} = Message,
-			{ok, Data ++ [{Key, Element}]};
-		delete ->
-			{ok, lists:keydelete(Message, 1, Data)};
-		read ->
-			{lists:keyfind(Message, 1, Data), Data};
-		match ->
-			{lists:keyfind(Message, 2, Data), Data}
-	end.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+% handle_msg(Type, Message, Data) ->
+% 	case Type of
+% 		write ->
+% 			{Key, Element} = Message,
+% 			{ok, Data ++ [{Key, Element}]};
+% 		delete ->
+% 			{ok, lists:keydelete(Message, 1, Data)};
+% 		read ->
+% 			{lists:keyfind(Message, 1, Data), Data};
+% 		match ->
+% 			{lists:keyfind(Message, 2, Data), Data}
+% 	end.
