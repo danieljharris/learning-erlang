@@ -7,9 +7,9 @@
 start() -> register(msg_server, spawn(link_ping_pong, init, [])).
 
 print(Message) ->
-	msg_server!{message, Message, self()},
 	process_flag(trap_exit, true),
 	link(whereis(msg_server)),
+	msg_server!{message, Message, self()},
 	receive
 		{'EXIT', _Pid, Reason} -> {error, Reason};
 		{reply, Reply} -> Reply
@@ -17,9 +17,9 @@ print(Message) ->
 
 % Link method
 stop() ->
-	msg_server!{stop, self()},
 	process_flag(trap_exit, true),
 	link(whereis(msg_server)),
+	msg_server!{stop, self()},
 	receive
 		{'EXIT', _Pid, Reason} -> {error, Reason};
 		{reply, Reply} ->
