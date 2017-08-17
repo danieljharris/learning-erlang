@@ -17,11 +17,13 @@ get_call(Number) 	-> msg({Number, incoming}).
 
 %% Link method
 % msg(Message) ->
-% 	cell ! {Message, self()},
 % 	process_flag(trap_exit, true),
 % 	(catch link(whereis(cell))),
+% 	cell ! {Message, self()},
 % 	receive
-% 		{'EXIT', _Pid, Reason} -> {error, Reason};
+% 		{'EXIT', _Pid, Reason} ->
+% 			stop(),
+% 			{error, Reason};
 % 		{reply, Reply} ->
 % 			unlink(whereis(cell)),
 % 			Reply
@@ -31,11 +33,13 @@ get_call(Number) 	-> msg({Number, incoming}).
 
 %% Monitor method
 msg(Message) ->
-	cell ! {Message, self()},
 	process_flag(trap_exit, true),
 	Reference = erlang:monitor(process, whereis(cell)),
+	cell ! {Message, self()},
 	receive
-		{'DOWN',Reference,process, _Pid, Reason} -> Reason;
+		{'DOWN',Reference,process, _Pid, Reason} ->
+			stop(),
+			Reason;
 		{reply, Reply} ->
 			erlang:demonitor(Reference),
 			Reply
@@ -59,7 +63,10 @@ idle() ->
 			%start_tone(),
 			dial();
 		stop ->
-			true
+			true;
+		{_Other, Pid} ->
+			reply(Pid, wrong_action_for_state),
+			idle()
 	end.
 
 dial() ->
@@ -72,7 +79,10 @@ dial() ->
 		{on_hook, Pid} ->
 			reply(Pid, hooking_phone),
 			%stop_tone(),
-			idle()
+			idle();
+		{_Other, Pid} ->
+			reply(Pid, wrong_action_for_state),
+			dial()
 	end.
 
 wait_answer(Number) ->
@@ -84,7 +94,10 @@ wait_answer(Number) ->
 		{on_hook, Pid} ->
 			reply(Pid, hooking_phone),
 			%stop_ringing(),
-			idle()
+			idle();
+		{_Other, Pid} ->
+			reply(Pid, wrong_action_for_state),
+			wait_answer(Number)
 	end.
 
 ringing(Number) ->
@@ -96,25 +109,22 @@ ringing(Number) ->
 		{off_hook, Pid} ->
 			reply(Pid, answer_call),
 			%stop_ringing(),
-			connected(Number)
+			connected(Number);
+		{_Other, Pid} ->
+			reply(Pid, wrong_action_for_state),
+			ringing(Number)
 	end.
 
-connected(_Number) ->
+connected(Number) ->
 	receive
 		{on_hook, Pid}->
 			reply(Pid, call_dropped),
 			idle();
 		{other_on_hook, Pid} ->
 			reply(Pid, call_dropped),
-			idle()
+			idle();
+		{_Other, Pid} ->
+			reply(Pid, wrong_action_for_state),
+			connected(Number)
 	end.
 %States -
-
-
-
-
-
-
-
-
-
