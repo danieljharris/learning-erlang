@@ -3,16 +3,19 @@
 -export([idle/0, dial/0, wait_answer/1, ringing/1, connected/1]).
 
 
+start() ->
+	event_manager:start(fsm, [{log_handler, "PhoneLog"}]),
+	register(cell, spawn(fsm, idle, [])).
+stop() 	->
+	event_manager:stop(fsm),
+	cell ! stop.
 
-start() -> register(cell, spawn(fsm, idle, [])).
-stop() 	-> cell ! stop.
-
-un_hook() 			-> msg(off_hook).
-hook() 				-> msg(on_hook).
-other_un_hook() 	-> msg(other_off_hook).
-other_hook() 		-> msg(other_on_hook).
-call(Number) 		-> msg({Number, calling}).
-get_call(Number) 	-> msg({Number, incoming}).
+un_hook()			-> msg(off_hook).
+hook()				-> msg(on_hook).
+other_un_hook()		-> msg(other_off_hook).
+other_hook()		-> msg(other_on_hook).
+call(Number)		-> msg({Number, calling}).
+get_call(Number)	-> msg({Number, incoming}).
 
 msg(Message) ->
 	cell ! {Message, self()},
@@ -77,23 +80,16 @@ ringing(Number) ->
 			connected(Number)
 	end.
 
-connected(_Number) ->
+connected(Number) ->
+	event_manager:send_event(fsm, {start_call, Number, phone_call}),
 	receive
-		{on_hook, Pid}->
+		{on_hook, Pid} ->
+			event_manager:send_event(fsm, {end_call, Number, phone_call}),
 			reply(Pid, call_dropped),
 			idle();
 		{other_on_hook, Pid} ->
+			event_manager:send_event(fsm, {end_call, Number, phone_call}),
 			reply(Pid, call_dropped),
 			idle()
 	end.
 %States -
-
-
-
-
-
-
-
-
-
-
