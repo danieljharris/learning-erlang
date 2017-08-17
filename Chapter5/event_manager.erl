@@ -14,8 +14,6 @@ initialize([{Handler, InitData}|Rest]) ->
 	[ { Handler, Handler:init(InitData) } | initialize(Rest) ].
 
 
-
-
 stop(Name) ->
 	Name ! {stop, self()},
 	receive
@@ -28,17 +26,12 @@ terminate([{Handler, Data}|Rest]) ->
 
 
 
-
-%%Exercise 5-3: Swapping Handlers (Page 162) - Not finished yet
+%%Exercise 5-3: Swapping Handlers (Page 162)
 swap_handlers(Name, OldHandler, NewHandler, InitData) ->
-	case delete_handler(Name, OldHandler) of
-		{data, _} -> add_handler(Name, NewHandler, InitData);
-		_Other	   -> {error, could_not_stop_old_handler}
+	case add_handler(Name, NewHandler, InitData) of
+		ok		-> delete_handler(Name, OldHandler);
+		_Other	-> {error, could_not_start_new_handler}
 	end.
-
-
-
-
 
 
 
@@ -78,9 +71,6 @@ event(Event, [{Handler, Data}|Rest]) ->
 
 
 
-
-
-
 call(Name, Msg) ->
 	Name ! {request, self(), Msg},
 	receive {reply, Reply} -> Reply end.
@@ -97,9 +87,3 @@ loop(State) ->
 		{stop, From} ->
 			reply(From, terminate(State))
 	end.
-
-
-
-
-
-
