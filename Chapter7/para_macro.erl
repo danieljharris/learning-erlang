@@ -1,16 +1,12 @@
--module(para_macros).
+-module(para_macro).
 -export([test/0]).
+
+% Exercise 7-6: Parameterized Macros
 
 -ifdef(show).
 	-define(SHOW_EVAL(Expression), io:format("~p = ~p~n",[??Expression,Expression])).
 -else.
-	-define(SHOW_EVAL(Expression), io:format("~p = ~p~n",[Expression])).
+	-define(SHOW_EVAL(Expression), io:format("~p~n",[Expression])).
 -endif.
 
--define(VALUE(Call),io:format("~p = ~p~n",[??Call,Call])).
-
-times(A,B) ->
-	?DBG("in records1:birthday(~p)~n", [P]),
-	P#person{age=Age+1}.
-
-
+test() -> ?SHOW_EVAL(length([1,2,3,4,5])).
