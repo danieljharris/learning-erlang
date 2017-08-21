@@ -1,7 +1,15 @@
 -module(fun_).
--export([map/2, filter/2, foreach/2, times/1, double/1, sendTo/1]).
+-export([map/2, filter/2, foreach/2, times/1, double/1, sendTo/1, perms/1, qsort/1]).
 
 -vsn(1.0).
+
+%% Higher-order functions:
+% lists:foldl(fun(X,Y) -> X+Y end, 0, [1,2,3,4,5]).
+% lists:foldl(fun(X,Y) -> [X|Y] end, [], [1,2,3,4,5]).
+% lists:foldl(fun(X,Y) -> [{num,X}|Y] end, [], [1,2,3,4,5]).
+
+
+
 
 
 % fun_:map(fun(Val) -> Val * 2 end,[1,2,3,4,5,6,7,8,9]).
@@ -55,6 +63,31 @@ double(List) ->
 sendTo(Pid) ->
 	fun (X) -> Pid ! {message, X}
 	end.
+
+
+
+
+
+
+
+
+
+
+perms([]) -> [[]];
+perms([X|Xs]) ->
+	[ insert(X,As,Bs) || Ps <- perms(Xs), {As,Bs} <- splits(Ps) ].
+
+splits([]) -> [{[],[]}];
+splits([X|Xs] = Ys) ->
+	[ {[],Ys} | [ { [X|As] , Bs} || {As,Bs} <- splits(Xs) ] ].
+
+insert(X,As,Bs) -> lists:append([As,[X],Bs]).
+
+
+
+
+qsort([]) -> []; qsort([X|Xs]) ->
+qsort([Y || Y<-Xs, Y =< X]) ++ [X] ++ qsort([Y || Y<-Xs, Y > X]).
 
 
 
