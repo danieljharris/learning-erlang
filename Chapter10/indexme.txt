@@ -1,0 +1,6 @@
+As an example of ETS tables in use, lets look at the design of an index for a text document
+well come back to this in later sections when we discuss how the data in the table can be accessed or traversed.
+Specification: the document is a text file, and the index is required to show all the lines on which a particular word
+appears. Words of fewer than four letters are ignored, and all the words in the document are normalized
+to noncapitalized form in the index.
+Consecutive lines are shown in the form of a range.
