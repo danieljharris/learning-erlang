@@ -1,37 +1,33 @@
 -module(enum).
--export([day/1, month/1]).
-
-% Exercise 7-8: Enumerated Types
-
--define(DAY(Day),
-	case Day of
-		monday		-> 1;
-		tuesday		-> 2;
-		wednesday	-> 3;
-		thursday	-> 4;
-		friday		-> 5;
-		saturday	-> 6;
-		sunday		-> 7
-	end
-	).
-
--define(MONTH(Day),
-	case Day of
-		january		-> 1;
-		february	-> 2;
-		march		-> 3;
-		april		-> 4;
-		may			-> 5;
-		june		-> 6;
-		july		-> 7;
-		august		-> 8;
-		september	-> 9;
-		october		-> 10;
-		november	-> 11;
-		december	-> 12
-	end
-	).
+-export([day/0, month/0]).
 
 
-day(Day) -> ?DAY(Day).
-month(Month) -> ?MONTH(Month).
+%% Exercise 7-8: Enumerated Types
+
+% Days
+
+-define(MONDAY,    1).
+-define(TUESDAY,   2).
+-define(WEDNESDAY, 3).
+-define(THURSDAY,  4).
+-define(FRIDAY,    5).
+-define(SATURDAY,  6).
+-define(SUNDAY,    7).
+
+% Months
+-define(JANUARY,   1).
+-define(FEBRUARY,  2).
+-define(MARCH,     3).
+-define(APRIAL,    4).
+-define(MAY,       5).
+-define(JUNE,      6).
+-define(JULY,      7).
+-define(AUGUST,    8).
+-define(SEPTEMBER, 9).
+-define(OCTOBER,   10).
+-define(NOVEMBER,  11).
+-define(DECEMBER,  12).
+
+
+day() -> ?THURSDAY.
+month() -> ?AUGUST.
