@@ -1,5 +1,5 @@
 -module(extend_records).
--export([dan/0, test/0, is_joe/1, showPerson/1]).
+-export([dan/0, test/0, showPerson/1, foobar/1]).
 
 % Exercise 7-1: Extending Records
 -record(address, {number, street, town, postcode}).
@@ -24,13 +24,5 @@ showAddress(#address{number=Number, street=Street, town=Town, postcode=Postcode}
 
 
 % Exercise 7-2: Record Guards
-% is_joe(#person{name="Joe"}) -> true;
-% is_joe(_Other) 				-> false.
-
-is_joe(#person{name=Name}) when Name == "Joe" -> true;
-is_joe(_Other) -> false.
-
-
-
-
-
+foobar(P) when is_record(P, person) -> P#person.name == "Joe";
+foobar(_) -> false.
