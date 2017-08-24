@@ -26,27 +26,21 @@ terminate([{Handler, Data}|Rest]) ->
 
 
 
-%%Exercise 5-3: Swapping Handlers (Page 162)
-swap_handlers(Name, OldHandler, NewHandler, InitData) ->
-	case add_handler(Name, NewHandler, InitData) of
-		ok		-> delete_handler(Name, OldHandler);
-		_Other	-> {error, could_not_start_new_handler}
-	end.
+%%Exercise 5-3: Swapping Handlers
+swap_handlers	(Name, OldHandler, NewHandler, InitData)	-> call(Name, {swap_handlers,	OldHandler, NewHandler, InitData	}).
+
+add_handler     (Name, Handler, InitData) 					-> call(Name, {add_handler,		Handler, InitData					}).
+
+delete_handler  (Name, Handler)								-> call(Name, {delete_handler,	Handler								}).
+
+get_data        (Name, Handler)								-> call(Name, {get_data,		Handler								}).
+
+send_event      (Name, Event)								-> call(Name, {send_event,		Event								}).
 
 
 
-add_handler		(Name, Handler, InitData) 	-> call(Name, {add_handler, 	Handler, InitData 	}).
-
-delete_handler	(Name, Handler 			) 	-> call(Name, {delete_handler, 	Handler 			}).
-
-get_data		(Name, Handler 			) 	-> call(Name, {get_data,	 	Handler 			}).
-
-send_event		(Name, Event 			)	-> call(Name, {send_event, 		Event 				}).
-
-
-handle_msg( {add_handler, Handler, InitData}, LoopData ) -> { ok, [ { Handler, Handler:init(InitData) } | LoopData ] };
-
-handle_msg( {delete_handler, Handler}, LoopData ) ->
+handle_operation_add( {Handler, InitData}, LoopData ) -> { ok, [ { Handler, Handler:init(InitData) } | LoopData ] }.
+handle_operation_remove( Handler, LoopData ) ->
 	case lists:keysearch( Handler, 1, LoopData ) of
 		false ->
 			{ {error, instance}, LoopData };
@@ -54,7 +48,21 @@ handle_msg( {delete_handler, Handler}, LoopData ) ->
 			Reply = { data, Handler:terminate(Data) },
 			NewLoopData = lists:keydelete(Handler, 1, LoopData),
 			{Reply, NewLoopData}
+	end.
+
+
+handle_msg( {swap_handlers, OldHandler, NewHandler, InitData}, LoopData ) ->
+	case handle_operation_add( {NewHandler, InitData}, LoopData ) of
+		{ok, LoopDataAdd} ->
+			{_, LoopDataRemoved} = handle_operation_remove(OldHandler, LoopDataAdd),
+			{ok, LoopDataRemoved};
+
+		_Other	->
+			{{error, could_not_start_new_handler}, LoopData}
 	end;
+
+handle_msg( {add_handler, Handler, InitData}, LoopData ) -> handle_operation_add( {Handler, InitData},LoopData );
+handle_msg( {delete_handler, Handler}, LoopData ) -> handle_operation_remove( Handler, LoopData );
 
 handle_msg( {get_data, Handler}, LoopData ) ->
 	case lists:keysearch(Handler, 1, LoopData) of
