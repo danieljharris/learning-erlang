@@ -63,7 +63,7 @@ ring_loop(Pid) ->
 					ring_loop(Pid)
 			end;
 
-		stop -> catch Pid!stop
+		stop -> Pid!stop
 	end.
 
 
