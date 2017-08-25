@@ -12,96 +12,90 @@ index() -> index(get_path()).
 
 % Exercise 10-2: Indexing Revisited
 index(File) ->
-	ets:new(indexTable, [ordered_set, named_table, {keypos, 1}]),
-	processFile(File),
-	prettyIndex(),
-	ets:delete(indexTable).
+  ets:new(indexTable, [ordered_set, named_table, {keypos, 1}]),
+  processFile(File),
+  prettyIndex(),
+  ets:delete(indexTable).
 
 
 processFile(File) ->
-	{ok,IoDevice} = file:open(File,[read]),
-	processLines(IoDevice,1).
+  {ok,IoDevice} = file:open(File,[read]),
+  processLines(IoDevice,1).
 
 processLines(IoDevice,N) ->
-	case io:get_line(IoDevice,"") of
-		eof -> ok;
-		Line ->
-			processLine(Line,N),
-			processLines(IoDevice,N+1)
-	end.
+  case io:get_line(IoDevice, "") of
+    eof -> ok;
+    Line ->
+      processLine(Line, N),
+      processLines(IoDevice, N+1)
+  end.
 
 
 -define(Punctuation, "[\\ |\\,|\\.|\\;|\\:|\\t|\\n|\\(|\\)]").
 
 processLine(Line,N) ->
-	Words = re:split(Line, ?Punctuation, [{return,list}]),
-	processWords(Words, N).
-
+  Words = re:split(Line, ?Punctuation, [{return,list}]),
+  processWords(Words, N).
 
 processWords(Words,N) ->
-	case Words of
-		[] -> ok;
-		[Word|Rest] ->
-			if
-				length(Word) > 3 ->
-					Normalise = string:to_lower(Word),
-					ets:insert(indexTable, {{Normalise , N}} );
-				true -> ok
-			end,
-			processWords(Rest,N)
-	end.
+  case Words of
+    [] -> ok;
+    [Word|Rest] ->
+      if
+        length(Word) > 3 ->
+          Normalise = string:to_lower(Word),
+          case ets:lookup(indexTable, Normalise) of
+            [] -> 
+              ets:insert(indexTable, {Normalise , [N]} );
+            [{Normalise, Lines}] ->
+              ets:delete(indexTable, Normalise),
+              ets:insert(indexTable, {Normalise , Lines ++ [N]})
+          end;
 
+        true -> ok
+      end,
+      processWords(Rest,N)
+  end.
 
 
 prettyIndex() ->
-	case ets:first(indexTable) of
-		'$end_of_table' -> ok;
-		First ->
-			case First of
-				{Word, N} ->
-					IndexEntry = {Word, [N]}
-			end,
-		prettyIndexNext(First, IndexEntry)
-	end.
+  case ets:first(indexTable) of
+    [] -> ok;
+    FirstKey ->
+      [{Word, Lines}] = ets:lookup(indexTable, FirstKey),
+      IndexEntry = {Word, Lines},
+      prettyIndexNext(FirstKey, IndexEntry)
+  end.
 
-
-
-prettyIndexNext(Entry, {Word, Lines}=IndexEntry) ->
-	Next = ets:next(indexTable,Entry),
-	case Next of
-		'$end_of_table' -> prettyEntry(IndexEntry);
-		{NextWord, M} ->
-			if
-				NextWord == Word ->
-					prettyIndexNext(Next, {Word, [M|Lines]});
-				true ->
-					prettyEntry(IndexEntry),
-					prettyIndexNext(Next, {NextWord, [M]})
-			end
-	end.
-
-
-
+prettyIndexNext(EntryKey, IndexEntry) ->
+  Next = ets:next(indexTable,EntryKey),
+  case ets:lookup(indexTable, Next) of
+    [] -> ok;
+    [{NextWord, Occurrences}] ->
+        prettyEntry(IndexEntry),
+        prettyIndexNext(Next, {NextWord, Occurrences})
+  end.
 
 
 % Exercise 10-1: Pretty-Printing
 prettyEntry({Word, Lines}) when length(Lines) == 1 ->
-	Paded = pad(20, Word),
-	[Entry] = Lines,
+  Paded = pad(20, Word),
+  [Entry] = Lines,
 
-	Output = Paded ++ char_to_integer(Entry),
+  Output = Paded ++ char_to_integer(Entry),
 
-	io:format("~p~n",[Output]);
+  io:format("~p~n",[Output]);
+
 
 prettyEntry({Word, Lines}) ->
-	Acc = accumulate(Lines),
-	PList = prettyList(Acc),
+  Acc = accumulate(Lines),
+  PList = prettyList(Acc),
 
-	Paded = pad(20, Word),
+  Paded = pad(20, Word),
 
-	Output = Paded ++ PList,
+  Output = Paded ++ PList,
 
-	io:format("~p~n",[Output]).
+  io:format("~p~n",[Output]).
 
 
 
@@ -109,14 +103,13 @@ prettyEntry({Word, Lines}) ->
 % in descending order, and produce a list containing
 % ranges as well as removing duplicates.
 accumulate(List) ->
-	Sorted = lists:sort(List),
-	compress_link(Sorted).
+  compress_link(List).
 
 
 % This function will print the output of accumulate so
 % that on the list [{1},{3}, {5,7}] the output is 1,3,5-7
 prettyList(List) ->
-	compress_pretty(List).
+  compress_pretty(List).
 
 
 % This function, called with number N and string Word,
@@ -129,48 +122,48 @@ pad(_, Word) -> Word.
 
 %%Linker (Links adjacent numbers) [1,2,5,8,9,10] -> [{1,2},{5},{8,10}]
 compress_link([]) -> [];
-compress_link(List) -> compress_link(List, {0, 0}, []).
+compress_link(List) -> lists:reverse(compress_link(List, {0, 0}, [])).
 
 compress_link([], _Range, Output) -> Output;
 
 compress_link([Head,Next], {0, 0}, Output)
-  when (Next - Head == 1) -> Output ++ [{Head, Next}];
-compress_link([Head,Next], Range, Output)
-  when (Next - Head == 1) -> Output ++ [{element(1, Range), Next}];
-compress_link([Head,Next], Range, Output)
+  when (Next - Head == 1) -> [{Head, Next} | Output];
+compress_link([Head,Next], {R1, _R2}, Output)
+  when (Next - Head == 1) -> [{R1, Next} | Output];
+compress_link([Head,Next], {R1, _R2} = Range, Output)
   when (Next - Head >= 1) and (Range /= {0, 0}) ->
-    Output ++ [{element(1, Range),Head},{Next}];
+    [{R1,Head},{Next} | Output];
 compress_link([Head,Next], _Range, Output)
-  when (Next - Head >= 1) -> Output ++ [{Head},{Next}];
+  when (Next - Head >= 1) -> [{Next}, {Head} | Output];
 
 
 compress_link([Head,Next|Tail], {0, 0}, Output)
   when (Next - Head == 1) -> compress_link([Next|Tail], {Head, 0}, Output);
-compress_link([Head,Next|Tail], Range, Output)
-  when (Next - Head == 1) -> compress_link([Next|Tail], {element(1, Range), Next}, Output);
+compress_link([Head,Next|Tail], {R1, _R2}, Output)
+  when (Next - Head == 1) -> compress_link([Next|Tail], {R1, Next}, Output);
 compress_link([Head,Next|Tail], {0,0}, Output)
-  when (Next - Head >= 1) -> compress_link([Next|Tail], {0, 0}, Output ++ [{Head}]);
-compress_link([Head,Next|Tail], Range, Output)
-	when (Next - Head >= 1) -> compress_link([Next|Tail], {0, 0}, Output ++ [{element(1, Range),Head}]).
+  when (Next - Head >= 1) -> compress_link([Next|Tail], {0, 0}, [{Head} | Output]);
+compress_link([Head,Next|Tail], {R1, _R2}, Output)
+  when (Next - Head >= 1) -> compress_link([Next|Tail], {0, 0}, [{R1,Head} | Output]).
 
 
 %Prettyer (List with tuples to string) [{1,2},{3},{5,9}] -> "1-2,3,5-9"
 compress_pretty([]) -> [];
 
-compress_pretty([Head = {_Entry}|Tail]) ->
+compress_pretty([ {Element} |Tail]) ->
   case compress_pretty(Tail) of
     [] ->
-      char_to_integer(element(1,Head));
+      char_to_integer( Element );
     Compressed_Tail ->
-      char_to_integer(element(1,Head)) ++ ", " ++ Compressed_Tail
+      char_to_integer( Element ) ++ ", " ++ Compressed_Tail
   end;
 
-compress_pretty([Head = {_Entry1, _Entry2}|Tail]) ->
-	case compress_pretty(Tail) of
+compress_pretty([ {Element1, Element2} |Tail]) ->
+  case compress_pretty(Tail) of
     [] ->
-      char_to_integer( element(1,Head)) ++ "-" ++ char_to_integer(element(2,Head) );
+      char_to_integer( Element1 ) ++ "-" ++ char_to_integer( Element2 );
     Compressed_Tail ->
-        char_to_integer( element(1,Head)) ++ "-" ++ char_to_integer(element(2,Head) )
+        char_to_integer( Element1 ) ++ "-" ++ char_to_integer( Element2 )
         ++ "," ++ Compressed_Tail
     end.
 
