@@ -157,7 +157,7 @@ compress_link([Head,Next|Tail], Range, Output)
 %Prettyer (List with tuples to string) [{1,2},{3},{5,9}] -> "1-2,3,5-9"
 compress_pretty([]) -> [];
 
-compress_pretty([Head|Tail]) when tuple_size(Head) == 1 ->
+compress_pretty([Head = {_Entry}|Tail]) ->
   case compress_pretty(Tail) of
     [] ->
       char_to_integer(element(1,Head));
@@ -165,7 +165,7 @@ compress_pretty([Head|Tail]) when tuple_size(Head) == 1 ->
       char_to_integer(element(1,Head)) ++ ", " ++ Compressed_Tail
   end;
 
-compress_pretty([Head|Tail]) when tuple_size(Head) == 2 ->
+compress_pretty([Head = {_Entry1, _Entry2}|Tail]) ->
 	case compress_pretty(Tail) of
     [] ->
       char_to_integer( element(1,Head)) ++ "-" ++ char_to_integer(element(2,Head) );
