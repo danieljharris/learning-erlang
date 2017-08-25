@@ -10,7 +10,7 @@ destroy(_)        -> ok.
 write(Db, Data)   -> [Data | Db].
 delete(Db, Data)  -> Db -- match(Db, Data).
 
-read(_, [])                                           -> {error, key_not_found};
+read([],_)                                           -> {error, key_not_found};
 read([#data{key=Key, data=Data}|_], #data{key=Key})	  -> {ok, Data};
 read([_|Tail],                      Find)             -> read(Tail, Find).
 
