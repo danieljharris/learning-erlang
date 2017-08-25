@@ -37,25 +37,18 @@ processLine(Line,N) ->
   Words = re:split(Line, ?Punctuation, [{return,list}]),
   processWords(Words, N).
 
-processWords(Words,N) ->
-  case Words of
-    [] -> ok;
-    [Word|Rest] ->
-      if
-        length(Word) > 3 ->
-          Normalise = string:to_lower(Word),
-          case ets:lookup(indexTable, Normalise) of
-            [] -> 
-              ets:insert(indexTable, {Normalise , [N]} );
-            [{Normalise, Lines}] ->
-              ets:delete(indexTable, Normalise),
-              ets:insert(indexTable, {Normalise , Lines ++ [N]})
-          end;
-
-        true -> ok
-      end,
-      processWords(Rest,N)
-  end.
+processWords([], _N) -> ok;
+processWords([Word|Rest], N) when length(Word) > 3 ->
+  Normalise = string:to_lower(Word),
+  case ets:lookup(indexTable, Normalise) of
+    [] -> 
+      ets:insert(indexTable, {Normalise , [N]} );
+    [{Normalise, Lines}] ->
+      ets:delete(indexTable, Normalise),
+      ets:insert(indexTable, {Normalise , Lines ++ [N]})
+  end,
+  processWords(Rest,N);
+processWords([_Word|Rest], N) -> processWords(Rest,N).
 
 
 prettyIndex() ->
