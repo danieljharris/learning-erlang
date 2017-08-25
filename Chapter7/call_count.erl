@@ -23,11 +23,12 @@ test() ->
 
 % Example Functions
 foo() ->
-  ?COUNT_CALL(call_count, foo),
+  ?COUNT_CALL(?MODULE, ?FUNCTION_NAME),
+
   ok.
 
 bar() ->
-  ?COUNT_CALL(call_count, bar),
+  ?COUNT_CALL(?MODULE, ?FUNCTION_NAME),
   ok.
 
 
