@@ -5,7 +5,7 @@
 -vsn(1.0).
 
 
-get_path() -> "/Users/daniel.harris/Documents/GitErlang/learning-erlang/Chapter10/indexme.txt".
+get_path() -> "/Users/daniel.harris/Documents/ErlTestFunctions/Chapter10/indexme.txt".
 
 index() -> index(get_path()).
 
@@ -16,7 +16,6 @@ index(File) ->
 	processFile(File),
 	prettyIndex(),
 	ets:delete(indexTable).
-
 
 
 processFile(File) ->
@@ -32,7 +31,6 @@ processLines(IoDevice,N) ->
 	end.
 
 
-% -define(Punctuation,"(\\ |\\,|\\.|\\;|\\:|\\t|\\n|\\(|\\))+").
 -define(Punctuation, "[\\ |\\,|\\.|\\;|\\:|\\t|\\n|\\(|\\)]").
 
 processLine(Line,N) ->
@@ -86,10 +84,6 @@ prettyIndexNext(Entry, {Word, Lines}=IndexEntry) ->
 
 
 
-
-
-
-
 % Exercise 10-1: Pretty-Printing
 prettyEntry({Word, Lines}) when length(Lines) == 1 ->
 	Paded = pad(20, Word),
@@ -111,14 +105,11 @@ prettyEntry({Word, Lines}) ->
 
 
 
-
-
 % This function should take a list of line numbers,
 % in descending order, and produce a list containing
 % ranges as well as removing duplicates.
 accumulate(List) ->
 	Sorted = lists:sort(List),
-	% Compressed = compress(Sorted).
 	compress_link(Sorted).
 
 
@@ -136,59 +127,42 @@ pad(_, Word) -> Word.
 
 
 
-
-%%Compresser (Removes duplicates) [1,1,1,2,2,5,7,9,9] -> [1,2,5,7,9]
-compress([]) -> [];
-compress(List) -> compress(List, []).
-
-compress([], Output) -> Output;
-compress(List, Output) when length(List) == 1 -> Output ++ List;	
-compress([Head|Tail], _) when (Tail - Head) =< 1 -> [];
-compress([Head|Tail], Output) when (Tail - Head) >= 1 -> Output ++ [Head];
-compress([Head,Next|Tail], Output) ->
-	if
-		(Next - Head) == 0 -> compress([Head|Tail], Output);
-		% (Next - Head) == 1 -> compress([Next|Tail], Output ++ [Head] ++ ["-"] );
-		(Next - Head) >= 1 -> compress([Next|Tail], Output ++ [Head])
-	end.
-
-
 %%Linker (Links adjacent numbers) [1,2,5,8,9,10] -> [{1,2},{5},{8,10}]
 compress_link([]) -> [];
 compress_link(List) -> compress_link(List, {0, 0}, []).
 
-compress_link([], _, Output) -> Output;
-compress_link([Head,Next], Range, Output) -> 
-	if
-		(Next - Head == 1) and (Range == {0, 0}) -> Output ++ [{Head, Next}];
-		(Next - Head == 1) -> Output ++ [{element(1, Range), Next}];
-		(Next - Head >= 1) and (Range /= {0, 0}) -> Output ++ [{element(1, Range),Head},{Next}];
-		(Next - Head >= 1) -> Output ++ [{Head},{Next}]
-	end;
-compress_link([Head,Next|Tail], Range, Output) ->
-	if
-		(Next - Head == 1) and (Range == {0, 0}) -> compress_link([Next|Tail], {Head, 0}, Output);
-		(Next - Head == 1) -> compress_link([Next|Tail], {element(1, Range), Next}, Output);
-		(Next - Head >= 1) and (Range == {0, 0}) -> compress_link([Next|Tail], {0, 0}, Output ++ [{Head}]);
-		(Next - Head >= 1) -> compress_link([Next|Tail], {0, 0}, Output ++ [{element(1, Range),Head}])
-	end.
+compress_link([], _Range, Output) -> Output;
+
+compress_link([Head,Next], {0, 0}, Output)
+  when (Next - Head == 1) -> Output ++ [{Head, Next}];
+compress_link([Head,Next], Range, Output)
+  when (Next - Head == 1) -> Output ++ [{element(1, Range), Next}];
+compress_link([Head,Next], Range, Output)
+  when (Next - Head >= 1) and (Range /= {0, 0}) ->
+    Output ++ [{element(1, Range),Head},{Next}];
+compress_link([Head,Next], _Range, Output)
+  when (Next - Head >= 1) -> Output ++ [{Head},{Next}];
+
+
+compress_link([Head,Next|Tail], {0, 0}, Output)
+  when (Next - Head == 1) -> compress_link([Next|Tail], {Head, 0}, Output);
+compress_link([Head,Next|Tail], Range, Output)
+  when (Next - Head == 1) -> compress_link([Next|Tail], {element(1, Range), Next}, Output);
+compress_link([Head,Next|Tail], {0,0}, Output)
+  when (Next - Head >= 1) -> compress_link([Next|Tail], {0, 0}, Output ++ [{Head}]);
+compress_link([Head,Next|Tail], Range, Output)
+	when (Next - Head >= 1) -> compress_link([Next|Tail], {0, 0}, Output ++ [{element(1, Range),Head}]).
 
 
 %Prettyer (List with tuples to string) [{1,2},{3},{5,9}] -> "1-2,3,5-9,"
 compress_pretty([]) -> [];
-compress_pretty([Head|Tail]) when tuple_size(Head) == 1 -> char_to_integer(element(1,Head)) ++ "," ++ compress_pretty(Tail);
+
+compress_pretty([Head|Tail]) when tuple_size(Head) == 1 ->
+  char_to_integer(element(1,Head)) ++ ", " ++ compress_pretty(Tail);
+
 compress_pretty([Head|Tail]) when tuple_size(Head) == 2 ->
 	char_to_integer(  element(1,Head)) ++ "-" ++ char_to_integer(element(2,Head)  )
 	++ "," ++ compress_pretty(Tail).
 
 
 char_to_integer(Char) -> lists:flatten(io_lib:format("~p", [Char])).
-
-
-
-
-
-
-
-
-
