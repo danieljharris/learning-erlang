@@ -1,58 +1,34 @@
 -module(hof).
--export([print/2, print_even/2, smaller_or_equal/2, concat/0, sum/1]).
+-export([print/2, print_even/2, smaller_or_equal/2, concat/1, sum/1]).
 
 -vsn(1.0).
 
 % Exercise 9-1: Higher-Order Functions
 
-foreach(F,[]) -> ok;
+foreach(_,[]) -> ok;
 foreach(F,[X|Xs]) ->
-		F(X),
-		foreach(F,Xs).
+    F(X),
+    foreach(F,Xs).
 
-% filter(P,[]) -> [];
-% filter(P,[X|Xs]) ->
-% 	case P(X) of
-% 		true ->
-% 			[X| filter(P,Xs)];
-% 		_ ->
-% 			filter(P,Xs)
-% 	end.
-
-
-print_fun() ->
-	fun(Val) -> io:format("Integers: ~p~n", [Val]) end.
+print(Val) ->
+  io:format("Integers: ~p~n", [Val]).
 
 print(Start, End) ->
-	foreach(print_fun(), lists:seq(Start, End)).
+  foreach(fun print/1, lists:seq(Start, End)).
 
 print_even(Start, End) ->
-	Even = lists:filter(fun(A) -> A rem 2 == 0 end, lists:seq(Start, End) ),
-	foreach(print_fun(), Even).
+  Even = lists:filter(fun(A) -> A rem 2 == 0 end, lists:seq(Start, End) ),
+  foreach(fun print/1, Even).
 
 
 smaller_or_equal(List, Max) ->
-	lists:filter(fun(A) -> A =< Max end, List).
+  lists:filter(fun(A) -> A =< Max end, List).
 
 
-% Not sure if this is how they wanted me to structure the function
-% but its the best way I could get working that involved funs
-concat() -> fun(List) -> lists:concat(List) end.
-
-% do_concat() ->
-% 	fun(F, List) ->
-% 		if
-% 			List  == [] -> [];
-% 			true ->
-% 				[Head|Tail] = List,
-% 				[ Head | F(F, Tail)] 
-% 		end
-% 	end.
-
+% Needed to use ++ because I couldent merge two lists without it, couldent use [ | ]
+concat(List) ->
+  lists:foldl(fun(Segment, Acc) -> Acc ++ Segment end, [], List).
 
 
 sum(List) ->
-	lists:foldl(fun(Num,Acc) -> Num + Acc end, 0, List).
-
-
-
+  lists:foldl(fun(Num,Acc) -> Num + Acc end, 0, List).
