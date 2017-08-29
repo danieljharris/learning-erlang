@@ -6,7 +6,7 @@
 example_tree() ->
   {node,
     {node,
-      {leaf,car},
+      {leaf,cat},
       {node,
         {leaf,dog},
         {leaf,emu}
@@ -35,5 +35,35 @@ listToTree([M|Rest] = _Code) ->
 
 
 % Exercise 9-6: Bitstrings
-list_serialization(List) -> erlang:term_to_binary(List).
-binary_deserialization(Binary) -> erlang:binary_to_term(Binary).
+list_serialization(List) -> list_serialization(List, << >>).
+
+list_serialization([], Acc) -> Acc;
+
+list_serialization([Head|Tail], Acc) when is_atom(Head) ->
+  BinaryHead = erlang:atom_to_binary(Head, latin1),
+  list_serialization(Tail, << Acc/binary, 0, BinaryHead/binary, 0>>);
+
+list_serialization([Head|Tail], Acc) -> 
+  list_serialization(Tail, << Acc/binary, Head >>).
+
+
+
+binary_deserialization(Binary) ->
+  binary_deserialization(Binary, []).
+
+binary_deserialization(<<0, Tail/binary>>, Acc) ->
+  {NewBinary, Atom} = extract_atom(Tail, []),
+  binary_deserialization(NewBinary, [Atom | Acc]);
+
+binary_deserialization(<<Head:1/binary, Tail/binary>>, Acc) ->
+  [ListValue] = io_lib:format("~w", erlang:binary_to_list(Head)),
+  {IntValue, _} = string:to_integer(ListValue),
+  binary_deserialization(<<Tail/binary>>, [IntValue | Acc] );
+
+binary_deserialization(_, Acc) -> lists:reverse(Acc).
+
+
+extract_atom(<<0, Tail/binary>>, Acc) ->
+  {Tail, erlang:list_to_atom(lists:reverse(lists:concat(Acc)))};
+extract_atom(<<Head:1/binary, Tail/binary>>, Acc) ->
+  extract_atom(Tail, [erlang:binary_to_atom(Head, latin1) | Acc]).
