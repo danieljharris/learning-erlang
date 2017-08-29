@@ -1,5 +1,5 @@
 -module(ziper).
--export([zip/2, zipWith/2]).
+-export([zip/2, add/2, zipWith/3]).
 
 -vsn(1.0).
 
@@ -20,8 +20,8 @@ zip([H1|T1],[H2|T2]) -> [{H1,H2} | zip(T1, T2) ].
 % "Using this example, define the function zipWith that applies a
 % binary function to two lists of arguments, in lock step:"
 
-% Not sure what the question is asking for, but I made this function
-% that works as shown
-zipWith([],_) -> [];
-zipWith(_,[]) -> [];
-zipWith([H1|T1],[H2|T2]) -> [H1 + H2 | zipWith(T1, T2) ].
+add(X, Y) -> X + Y.
+
+zipWith(_, [],_) -> [];
+zipWith(_, _,[]) -> [];
+zipWith(Fun, [H1|T1],[H2|T2]) -> [ Fun(H1, H2) | zipWith(Fun, T1, T2) ].
