@@ -9,38 +9,38 @@
 % Exercise 11-1: Distributed Associative Store (Interface & Load Balancer)
 
 open() ->
-	spawn(?BALANCE_NODE, balance_node, start, []),
+  spawn(?BALANCE_NODE, balance_node, start, []),
 
-	spawn(?DB_NODE, db_node, start, []),
+  spawn(?DB_NODE, db_node, start, []),
 
-	spawn(?NODE_ONE, das_node, create, []),
-	spawn(?NODE_TWO, das_node, create, []),
+  spawn(?NODE_ONE, das_node, create, []),
+  spawn(?NODE_TWO, das_node, create, []),
 
-	{balancer, ?BALANCE_NODE} ! {link, ?DB_NODE},
-	{balancer, ?BALANCE_NODE} ! {link, ?NODE_ONE},
-	{balancer, ?BALANCE_NODE} ! {link, ?NODE_TWO},
+  {balancer, ?BALANCE_NODE} ! {link, ?DB_NODE},
+  {balancer, ?BALANCE_NODE} ! {link, ?NODE_ONE},
+  {balancer, ?BALANCE_NODE} ! {link, ?NODE_TWO},
 
-	ok.
+  ok.
 
 close() ->
-	{balancer,			?BALANCE_NODE}	! stop,
-	{address_loop,	?NODE_ONE}			! stop,
-	{address_loop,	?NODE_TWO}			! stop,
-	{db_server,			?DB_NODE}				! stop,
-	ok.
+  {balancer,      ?BALANCE_NODE}  ! stop,
+  {address_loop,  ?NODE_ONE}      ! stop,
+  {address_loop,  ?NODE_TWO}      ! stop,
+  {db_server,     ?DB_NODE}       ! stop,
+  ok.
 
-add(Address, Nickname)	-> {balancer, ?BALANCE_NODE} ! {add, Address, Nickname}.
-remove(Address)					-> {balancer, ?BALANCE_NODE} ! {remove, Address}.
+add(Address, Nickname) -> {balancer, ?BALANCE_NODE} ! {add, Address, Nickname}.
+remove(Address) -> {balancer, ?BALANCE_NODE} ! {remove, Address}.
 
-lookup(Address)					->
-	clear_mailbox(),
-	{balancer, ?BALANCE_NODE} ! {lookup, Address, self()},
-	receive Reply -> Reply after 1000 -> {error, timeout} end.
+lookup(Address)	->
+  clear_mailbox(),
+  {balancer, ?BALANCE_NODE} ! {lookup, Address, self()},
+  receive Reply -> Reply after 1000 -> {error, timeout} end.
 
 
 clear_mailbox() ->
     receive
-        _Any ->
+      _Any ->
             clear_mailbox()
     after 0 ->
         ok
