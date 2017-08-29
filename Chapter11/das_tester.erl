@@ -12,8 +12,27 @@
 
 %%Notes --------------------------------------------------------------------
 
-% I had everything working, I'm now almost finished with the load balancer
-% Then I need to move on to making the System Monitoring task of 11-2
+% 5 nodes needed: one, two, db, bn & main node to run test from
+
+% erl -sname one -setcookie cake
+% 	c(das_node).
+
+% erl -sname two -setcookie cake
+% 	c(das_node).
+
+% erl -sname db -setcookie cake
+% 	c(db_node).
+
+% erl -sname bn -setcookie cake
+% 	c(balance_node).
+
+% erl -sname main -setcookie cake
+% 	c(das).
+% 	c(das_tester).
+
+
+% Running das_tester:test(). from main will go through some tests to
+% make sure all the nodes are working correctly
 
 %%Notes --------------------------------------------------------------------
 
