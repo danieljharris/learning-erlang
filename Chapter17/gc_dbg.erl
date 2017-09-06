@@ -4,24 +4,29 @@
 
 % Exercise 17-2: Garbage Collection Using dbg
 
-% Was attempting this exercise and came accross the same problem as before
-% it wont let me do any traces on garbage_collection
-
-% The example on page 372 is meant to show how to trace garbage_collection
-% but when I follow the example it crashes
-
 
 measure(Module, Function, Args) ->
-  % LoopPid = spawn(mgct, loop, []),
-
   register(test ,spawn(Module, Function, [Args])),
-  % erlang:trace(Pid, false, [all]),
 
-  % PortFun = dbg:trace_port(ip, 1234),
-  % dbg:trace(port, PortFun),
-  % dbg:tp({Module, Function, '_'}, []),
+  HandlerFun =
+    fun
 
-  dbg:tracer().
+      ({trace, Pid, gc_minor_start, Start}, _) ->
+        Start;
+      ({trace, Pid, gc_minor_end, End}, Start) ->
+        {_, {_,OHS}} = lists:keysearch(old_heap_size, 1, Start),
+        {_, {_,OHE}} = lists:keysearch(old_heap_size, 1, End),
+        io:format("Old heap size delta after gc:~w~n",[OHS-OHE]),
+        {_, {_,HS}} = lists:keysearch(heap_size, 1, Start),
+        {_, {_,HE}} = lists:keysearch(heap_size, 1, End),
+        io:format("Heap size delta after gc:~w~n",[HS-HE])
+    end,
+
+  dbg:tracer(process, {HandlerFun, null}).
+  dbg:p(self(), [garbage_collection]).
+
+  % List = lists:seq(1,1000).
+  % RevList = lists:reverse(List).
 
   test ! start,
   ok.

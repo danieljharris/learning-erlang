@@ -12,22 +12,13 @@ trace() ->
 
   dbg:p(all,[c]),
 
-%% The exercise says to use "conditional clauses", but that won't work because
-%% you can't test against whildcards, so I implemented it using pattern matching
-  % dbg:fun2ms(fun([_,Arg]) when Arg == {'EXIT', '_'}, Arg == {'EXIT', '_', '_'} -> message(caller()) end).
-  % dbg:tp({ets, insert, 2}, [{['_','$1'],
-  % [{'==','$1',{{'EXIT','_'}}},{'==','$1',{{'EXIT','_','_'}}}],
-  % [{message,{caller}}]}]),
-  % dbg:tpl({ets, insert, 2}, [{['_','$1'],
-  % [{'==','$1',{{'EXIT','_'}}},{'==','$1',{{'EXIT','_','_'}}}],
-  % [{message,{caller}}]}]),
-
 
   % dbg:fun2ms(fun([_,{'EXIT', _}]) -> message(caller()); ([_,{'EXIT', _, _}]) -> message(caller()) end).
   dbg:tp({ets, insert, 2}, [{['_',{'EXIT','_'}],[],[{message,{caller}}]},
     {['_',{'EXIT','_','_'}],[],[{message,{caller}}]}]),
   dbg:tpl({ets, insert, 2}, [{['_',{'EXIT','_'}],[],[{message,{caller}}]},
     {['_',{'EXIT','_','_'}],[],[{message,{caller}}]}]),
+
 
   spawn(ets_tracing, crash, []).
 

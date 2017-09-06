@@ -1,52 +1,52 @@
 -module(mgct).
 -export([measure/3, averageT/1, averageNT/1]).
--export([loop/0]).
+-export([loop/2]).
 
 
 % Exercise 17-1: Measuring Garbage Collection Times
-% I've tried to get this exercise to work but I cant get the tracer
-% to trace garbage_collection
-
-% There is an example on page 362 that shows how to trace garbage_collection
-% but this example doesent work when I do it
-% (There is never any traces done on garbage_collection)
-
 
 measure(Module, Function, Args) ->
-  LoopPid = spawn(mgct, loop, []),
+  LoopPid = spawn(mgct, loop, [{minor, 0, 0}, {major, 0, 0}]),
 
-  register(test ,Pid = spawn(Module, Function, [Args])),
-  % erlang:trace(Pid, false, [all]),
+  Pid = spawn(Module, Function, [Args]),
   erlang:trace(Pid, true, [garbage_collection, {tracer, LoopPid}]),
-  test ! start,
-  % erlang:trace_pattern({'_', '_', '_'}, true, [local]),
   ok.
 
 
-loop() ->
+loop(Minor, Major) ->
   receive
-    Message ->
-      io:format("I traced: ~p~n", [Message]),
-      loop()
+    % Minor -------------------
+    {trace, _, gc_minor_start, _} ->
+      {minor, _IStart, IEnd} = Minor,
+      loop({minor, erlang:timestamp(), IEnd}, Major);
+
+    {trace, _, gc_minor_end, _} ->
+      {minor, IStart, _IEnd} = Minor,
+      loop({minor, IStart, erlang:timestamp()}, Major);
+    
+    % Major -------------------
+    {trace, _, gc_major_start, _} ->
+      {major, _JStart, JEnd} = Major,
+      loop(Minor, {major, erlang:timestamp(), JEnd});
+
+    {trace, _, gc_major_end, _} ->
+      {major, JStart, _JEnd} = Major,
+      Now = erlang:timestamp(),
+      display_gc(Minor, {major, JStart, Now}),
+      loop(Minor, {major, JStart, Now})
+
   after 5000 ->
-    io:format("Error: ~p~n", [{error, timeout}]),
     {error, timeout}
   end.
 
-
+display_gc({minor, IStart, IEnd}, {major, JStart, JEnd}) ->
+  io:format("Gc minor took: ~p mircoseconds~n", [timer:now_diff(IEnd, IStart)]),
+  io:format("Gc major took: ~p mircoseconds~n", [timer:now_diff(JEnd, JStart)]).
 
 
 
 % Tail-recursive function
-averageT(List) ->
-  receive
-    Message ->
-      io:format("I Got: ~p~n", [Message]),
-      loop()
-  after 1000 ->
-    io:format("Error: ~p~n", [{error, timeout}])
-  end,
-  sum(List) / len(List).
+averageT(List) -> sum(List) / len(List).
 
 sum([]) -> 0;
 sum([Head | Tail]) -> Head + sum(Tail).

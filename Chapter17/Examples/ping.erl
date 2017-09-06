@@ -10,6 +10,7 @@ send(Pid) ->
 loop() ->
   receive
     {Pid, ping} ->
+      [I || I <- lists:seq(1, 10000)],
       spawn(crash, do_not_exist, []),
       Pid ! pong,
       loop()
