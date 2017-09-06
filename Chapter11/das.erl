@@ -33,15 +33,11 @@ add(Address, Nickname) -> {balancer, ?BALANCE_NODE} ! {add, Address, Nickname}.
 remove(Address) -> {balancer, ?BALANCE_NODE} ! {remove, Address}.
 
 lookup(Address)	->
-  clear_mailbox(),
   {balancer, ?BALANCE_NODE} ! {lookup, Address, self()},
-  receive Reply -> Reply after 1000 -> {error, timeout} end.
-
-
-clear_mailbox() ->
-    receive
-      _Any ->
-            clear_mailbox()
-    after 0 ->
-        ok
-    end.
+  receive
+    {error, timeout} ->
+      {error, timeout};
+    Reply ->
+      Reply
+  after 1000 -> {error, timeout}
+  end.

@@ -31,23 +31,13 @@ address_loop() ->
       address_loop();
 
     {lookup, Address, Pid} ->
-      clear_mailbox(),
       {db_server, ?DB_NODE} ! {read, Address, self()},
       receive
         Reply -> Pid ! Reply
-      after 1000 -> {error, timeout} 
+      after 1000 -> {error, timeout}
       end,
       address_loop();
     stop -> ok
 
   after 30000 -> {error, timeout}
   end.
-
-
-clear_mailbox() ->
-    receive
-        _Any ->
-            clear_mailbox()
-    after 0 ->
-        ok
-    end.

@@ -57,7 +57,7 @@ test() ->
     {bob, london} -> AddLook_Two_Result = working;
     _ -> AddLook_Two_Result = not_working
   end,
-  
+
   % Crossover
   case das:lookup(bob) of
     {bob, london} ->
@@ -69,7 +69,7 @@ test() ->
 
     _ -> AddLook_Crossover_Result = not_working
   end,
-  
+
   %% Remove & Lookup Testing
   das:remove(dan),
   das:remove(bob),
@@ -84,7 +84,7 @@ test() ->
     false -> RemoveLook_Two_Result = working;
     _ -> RemoveLook_Two_Result = not_working
   end,
-  
+
   % Crossover
   case das:lookup(bob) of
     false ->
@@ -98,12 +98,9 @@ test() ->
   end,
 
 
-
-
-
   % Closes down nodes
   das:close(),
-  
+
 
   io:format("
     Add & Look:  Node One:  ~p

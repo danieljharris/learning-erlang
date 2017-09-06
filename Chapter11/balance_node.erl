@@ -27,21 +27,22 @@ balancer(LastNode) ->
       monitor_node(Node, true),
       balancer(NextNode);
 
-    {add, Address, Nickname}  -> {address_loop, NextNode} ! {add, Address, Nickname},
+    {add, Address, Nickname} ->
+      {address_loop, NextNode} ! {add, Address, Nickname},
       event_manager:send_event(node_logger, {add, {Address, Nickname}, NextNode}),
       balancer(NextNode);
 
-    {remove, Address}          -> {address_loop, NextNode} ! {remove, Address},
+    {remove, Address} ->
+      {address_loop, NextNode} ! {remove, Address},
       event_manager:send_event(node_logger, {remove, {Address}, NextNode}),
       balancer(NextNode);
-    
-    {lookup, Address, Pid}    ->
+
+    {lookup, Address, Pid} ->
       event_manager:send_event(node_logger, {lookup, {Address}, NextNode}),
-      clear_mailbox(),
       {address_loop, NextNode} ! {lookup, Address, self()},
       receive
         Reply -> Pid ! Reply
-      after 1000 -> Pid ! {error, timeout} 
+      after 1000 -> {error, timeout}
       end,
       balancer(NextNode);
 
@@ -58,11 +59,3 @@ balancer(LastNode) ->
 
     stop -> stop(), ok
   end.
-
-clear_mailbox() ->
-    receive
-        _Any ->
-            clear_mailbox()
-    after 0 ->
-        ok
-    end.
