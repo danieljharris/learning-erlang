@@ -17,11 +17,6 @@ open() ->
   spawn(?NODE_ONE, das_node, create, [?DB_NODE1]),
   spawn(?NODE_TWO, das_node, create, [?DB_NODE2]),
 
-  {balancer, ?BALANCE_NODE} ! {link, ?DB_NODE1},
-  {balancer, ?BALANCE_NODE} ! {link, ?DB_NODE2},
-  {balancer, ?BALANCE_NODE} ! {link, ?NODE_ONE},
-  {balancer, ?BALANCE_NODE} ! {link, ?NODE_TWO},
-
   ok.
 
 close() ->

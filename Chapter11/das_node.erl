@@ -16,17 +16,6 @@ address_loop(LastDB) ->
   end,
 
   receive
-    {link, Node} ->
-      net_kernel:connect(Node),
-      monitor_node(Node, true),
-      {address_loop, Node} ! {link_node, node()},
-      address_loop(NextDB);
-
-    {link_node, Node} ->
-      % net_kernel:connect(Node),
-      monitor_node(Node, true),
-      address_loop(NextDB);
-
     {add, Address, Nickname} ->
       {db_server, ?DB_NODE1} ! {write, Address, Nickname},
       {db_server, ?DB_NODE2} ! {write, Address, Nickname},

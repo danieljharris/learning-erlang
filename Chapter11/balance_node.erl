@@ -22,11 +22,6 @@ balancer(LastNode) ->
   end,
 
   receive
-    {link, Node} ->
-      net_kernel:connect(Node),
-      monitor_node(Node, true),
-      balancer(NextNode);
-
     {add, Address, Nickname} ->
       {address_loop, NextNode} ! {add, Address, Nickname},
       event_manager:send_event(node_logger, {add, {Address, Nickname}, NextNode}),
@@ -44,17 +39,6 @@ balancer(LastNode) ->
         Reply -> Pid ! Reply
       after 1000 -> {error, timeout}
       end,
-      balancer(NextNode);
-
-    % Restarts crashed nodes
-    {nodedown, Node} when Node == ?DB_NODE1; Node == ?DB_NODE2 ->
-      event_manager:send_event(node_logger, {db_down, Node, restarting}),
-      spawn(Node, db_node, start, []),
-      balancer(NextNode);
-
-    {nodedown, Node} ->
-      event_manager:send_event(node_logger, {das_down, Node, restarting}),
-      spawn(Node, das_node, create, []),
       balancer(NextNode);
 
     stop -> stop(), ok
