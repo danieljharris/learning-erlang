@@ -11,12 +11,14 @@
 open() ->
   spawn(?BALANCE_NODE, balance_node, start, []),
 
-  spawn(?DB_NODE, db_node, start, []),
+  spawn(?DB_NODE1, db_node, start, []),
+  spawn(?DB_NODE2, db_node, start, []),
 
-  spawn(?NODE_ONE, das_node, create, []),
-  spawn(?NODE_TWO, das_node, create, []),
+  spawn(?NODE_ONE, das_node, create, [?DB_NODE1]),
+  spawn(?NODE_TWO, das_node, create, [?DB_NODE2]),
 
-  {balancer, ?BALANCE_NODE} ! {link, ?DB_NODE},
+  {balancer, ?BALANCE_NODE} ! {link, ?DB_NODE1},
+  {balancer, ?BALANCE_NODE} ! {link, ?DB_NODE2},
   {balancer, ?BALANCE_NODE} ! {link, ?NODE_ONE},
   {balancer, ?BALANCE_NODE} ! {link, ?NODE_TWO},
 
@@ -26,7 +28,8 @@ close() ->
   {balancer,      ?BALANCE_NODE}  ! stop,
   {address_loop,  ?NODE_ONE}      ! stop,
   {address_loop,  ?NODE_TWO}      ! stop,
-  {db_server,     ?DB_NODE}       ! stop,
+  {db_server,     ?DB_NODE1}      ! stop,
+  {db_server,     ?DB_NODE2}      ! stop,
   ok.
 
 add(Address, Nickname) -> {balancer, ?BALANCE_NODE} ! {add, Address, Nickname}.

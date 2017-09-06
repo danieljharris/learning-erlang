@@ -12,7 +12,7 @@
 
 %%Notes --------------------------------------------------------------------
 
-% 5 nodes needed: one, two, db, bn & main node to run test from
+% 3 nodes needed: one, two, db1, db2, bn & main node to run test from
 
 % erl -sname one -setcookie cake
 %   c(das_node).
@@ -20,7 +20,10 @@
 % erl -sname two -setcookie cake
 %   c(das_node).
 
-% erl -sname db -setcookie cake
+% erl -sname db1 -setcookie cake
+%   c(db_node).
+
+% erl -sname db2 -setcookie cake
 %   c(db_node).
 
 % erl -sname bn -setcookie cake

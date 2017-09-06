@@ -47,9 +47,9 @@ balancer(LastNode) ->
       balancer(NextNode);
 
     % Restarts crashed nodes
-    {nodedown, ?DB_NODE} ->
-      event_manager:send_event(node_logger, {db_down, ?DB_NODE, restarting}),
-      spawn(?DB_NODE, db_node, start, []),
+    {nodedown, Node} when Node == ?DB_NODE1; Node == ?DB_NODE2 ->
+      event_manager:send_event(node_logger, {db_down, Node, restarting}),
+      spawn(Node, db_node, start, []),
       balancer(NextNode);
 
     {nodedown, Node} ->
