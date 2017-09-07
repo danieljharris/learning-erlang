@@ -33,4 +33,4 @@ upgrade_cleanup(_) -> stop().
 
 %% Here you would check the db has been upgraded to the new format
 upgrade_test(NewDb) ->
-  [?_assertMatch({2,{3,4,{1,2,nil,nil},nil}}, NewDb)].
+  [?_assertEqual({2,{3,4,{1,2,nil,nil},nil}}, NewDb)].
