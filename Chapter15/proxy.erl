@@ -3,7 +3,8 @@
 
 
 server() ->
-  {ok, ListenSocket} = gen_tcp:listen(1501, [binary, {active, false}]),
+  inets:start(),
+  {ok, ListenSocket} = gen_tcp:listen(1500, [binary, {active, false}]),
   wait_connect(ListenSocket,0).
 
 wait_connect(ListenSocket, Count) ->
@@ -19,18 +20,24 @@ get_request(Socket, Count) ->
       ok
   end.
 
-% the http module is no longer used and I could not get the newer httpc module
-% to return the site in the same format as the http module would have 
-
 handle([<<_Get:4/binary, Tail/binary>>], _Count, Socket) ->
   Url = extract_url(Tail, []),
-  % {ok, Site} = httpc:request(Url),
-  % gen_tcp:send(Socket, Site).
-  io:format("~p~n", [Url]).
 
+  {ok, {{_HttpVersion, 200, "OK"}, Header, Body}} = httpc:request(Url),
+
+  send(Socket, Header),
+  send(Socket, Body),
+  io:format("~p~n~n", [Url]).
 
 extract_url(<< " ", _Tail/binary>>, Acc) ->
   lists:reverse(lists:concat(Acc));
 
 extract_url(<<Head:1/binary, Tail/binary>>, Acc) ->
   extract_url(Tail, [erlang:binary_to_list(Head) | Acc]).
+
+send(Socket, <<Chunk:100/binary, Rest/binary>>) ->
+  gen_tcp:send(Socket, Chunk),
+  send(Socket, Rest);
+
+send(Socket, Rest) ->
+  gen_tcp:send(Socket, Rest).
