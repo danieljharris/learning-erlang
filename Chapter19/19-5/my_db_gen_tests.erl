@@ -8,64 +8,27 @@
 
 %% code:add_path("my_db-3.0/ebin/").
 
-
-
-start_link_test_() ->
+everything_test_() ->
   {spawn,
     {setup,
-     fun start_link_setup/0,     % setup function
-     fun start_link_cleanup/1,   % teardown function
-     fun start_link_test/1       % instantiator
+     fun everything_setup/0,     % setup function
+     fun everything_cleanup/1,   % teardown function
+     fun everything_test/1       % instantiator
     }
   }.
 
-start_link_setup() -> ok.
-start_link_cleanup(_) -> stop().
-start_link_test(_) -> [ ?_assertMatch({ok, _}, start_link()) ].
+everything_setup() -> ok.
+everything_cleanup(_) -> ok.
+everything_test(_) ->
+  [?_assertMatch({ok, _}, start_link()),
+   ?_assertEqual(ok, write(a,b)),
+   ?_assertEqual(ok, delete(a)),
+   read_tester(),
+   match_tester(),
+   ?_assertEqual(ok, stop())
+  ].
 
-stop_test_() ->
-  {spawn,
-    {setup,
-     fun stop_setup/0,     % setup function
-     fun stop_cleanup/1,   % teardown function
-     fun stop_test/1       % instantiator
-    }
-  }.
-
-stop_setup() -> start_link().
-stop_cleanup(_) -> ok.
-stop_test(_) -> [ ?_assertMatch(ok, stop()) ].
-
-write_test_() ->
-  {spawn,
-    {setup,
-     fun write_setup/0,     % setup function
-     fun write_cleanup/1,   % teardown function
-     fun write_test/1       % instantiator
-    }
-  }.
-
-write_setup() -> start_link().
-write_cleanup(_) -> stop().
-write_test(_) -> [ ?_assertMatch(ok, write(a,b)) ].
-
-delete_test_() ->
-  {spawn,
-    {setup,
-     fun delete_setup/0,     % setup function
-     fun delete_cleanup/1,   % teardown function
-     fun delete_test/1       % instantiator
-    }
-  }.
-
-delete_setup() ->
-  start_link(),
-  write(a,b).
-delete_cleanup(_) -> stop().
-delete_test(_) -> [ ?_assertMatch(ok, delete(a)) ].
-
-
-read_test_() ->
+read_tester() ->
   {spawn,
     {setup,
      fun read_setup/0,     % setup function
@@ -75,7 +38,6 @@ read_test_() ->
   }.
 
 read_setup() ->
-  start_link(),
   Acc =
     fun(F, Num) ->
       case Num of
@@ -87,7 +49,7 @@ read_setup() ->
       end
     end,
   Acc(Acc, 10000).
-read_cleanup(_) -> stop().
+read_cleanup(_) -> ok.
 read_test(_) ->
   [?_assertMatch({ok, 2},     read(1)     ),
    ?_assertMatch({ok, 11},    read(10)    ),
@@ -98,7 +60,7 @@ read_test(_) ->
   ].
 
 
-match_test_() ->
+match_tester() ->
   {spawn,
     {setup,
      fun match_setup/0,     % setup function
@@ -107,20 +69,8 @@ match_test_() ->
     }
   }.
 
-match_setup() ->
-  start_link(),
-  Acc =
-    fun(F, Num) ->
-      case Num of
-        0 ->
-          ok;
-        _Other ->
-          write(Num, Num+1),
-          F(F, Num - 1)
-      end
-    end,
-  Acc(Acc, 10000).
-match_cleanup(_) -> stop().
+match_setup() -> ok.
+match_cleanup(_) -> ok.
 match_test(_) ->
   [?_assertMatch([1],     match(2)     ),
    ?_assertMatch([10],    match(11)    ),

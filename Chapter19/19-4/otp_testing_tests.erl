@@ -10,13 +10,13 @@ path() -> "/Users/daniel.harris/Documents/GitErlang/learning-erlang/Chapter19/19
 
 everything_test_() ->
   {setup,
-   fun start_link_setup/0,     % setup function
-   fun start_link_cleanup/1,   % teardown function
-   fun start_link_test/1       % instantiator
+   fun everything_setup/0,     % setup function
+   fun everything_cleanup/1,   % teardown function
+   fun everything_test/1       % instantiator
   }.
-start_link_setup() -> ok.
-start_link_cleanup(_) -> ok.
-start_link_test(_) ->
+everything_setup() -> ok.
+everything_cleanup(_) -> ok.
+everything_test(_) ->
   [?_assertMatch({ok, _}, start_link(path())),
    ?_assertEqual(ok, add_usr(dan, 123)),
    ?_assertEqual(ok, set_status(dan, enabled)),
