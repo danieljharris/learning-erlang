@@ -15,7 +15,7 @@ start_test_() ->
 
 start_setup() -> ok.
 start_cleanup(_) -> stop().
-start_test(_) -> [?_assertMatch(true, start())].
+start_test(_) -> [?_assertEqual(true, start())].
 
 stop_test_() ->
   {spawn,
@@ -28,7 +28,7 @@ stop_test_() ->
 
 stop_setup() -> start().
 stop_cleanup(_) -> ok.
-stop_test(_) -> [?_assertMatch(stop, stop())].
+stop_test(_) -> [?_assertEqual(stop, stop())].
 
 print_test_() ->
   {spawn,
@@ -42,4 +42,4 @@ print_test_() ->
 print_setup() -> start().
 print_cleanup(_) -> stop().
 print_test(_) ->
-  [?_assertMatch({message, "Hello World"}, print("Hello World"))].
+  [?_assertEqual({message, "Hello World"}, print("Hello World"))].
