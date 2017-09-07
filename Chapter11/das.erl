@@ -9,20 +9,15 @@
 % Exercise 11-1: Distributed Associative Store (Interface & Load Balancer)
 
 open() ->
-  spawn(?BALANCE_NODE, balance_node, start, []),
-
   spawn(?DB_NODE1, db_node, start, []),
   spawn(?DB_NODE2, db_node, start, []),
 
-  spawn(?NODE_ONE, das_node, create, [?DB_NODE1]),
-  spawn(?NODE_TWO, das_node, create, [?DB_NODE2]),
+  spawn(?BALANCE_NODE, balance_node, start, [?DB_NODE1]),
 
   ok.
 
 close() ->
   {balancer,      ?BALANCE_NODE}  ! stop,
-  {address_loop,  ?NODE_ONE}      ! stop,
-  {address_loop,  ?NODE_TWO}      ! stop,
   {db_server,     ?DB_NODE1}      ! stop,
   {db_server,     ?DB_NODE2}      ! stop,
   ok.

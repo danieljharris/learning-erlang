@@ -1,5 +1,5 @@
 -module(balance_node).
--export([start/0, balancer/1]).
+-export([start/1, balancer/1]).
 
 -include("nodes.hrl").
 
@@ -7,39 +7,40 @@
 
 % Exercise 11-1: Distributed Associative Store (Main Nodes)
 
-start() ->
+start(StartNode) ->
   event_manager:start(node_logger, [{log_handler, "NodeLog"}]),
-  register(balancer, spawn(balance_node, balancer, [?NODE_ONE])).
+  register(balancer, spawn(balance_node, balancer, [StartNode])).
 
 stop() ->
-  event_manager:stop(node_logger).
+  event_manager:stop(node_logger),
+  ok.
 
-
-balancer(LastNode) ->
-  case LastNode of
-    ?NODE_ONE -> NextNode = ?NODE_TWO;
-    ?NODE_TWO -> NextNode = ?NODE_ONE
+balancer(LastDB) ->
+  case LastDB of
+    ?DB_NODE1 -> NextDB = ?DB_NODE2;
+    ?DB_NODE2 -> NextDB = ?DB_NODE1
   end,
 
   receive
     {add, Address, Nickname} ->
-      {address_loop, NextNode} ! {add, Address, Nickname},
-      event_manager:send_event(node_logger, {add, {Address, Nickname}, NextNode}),
-      balancer(NextNode);
+      to_all_db_nodes({write, Address, Nickname}),
+      event_manager:send_event(node_logger, {add, {Address, Nickname}, NextDB}),
+      balancer(NextDB);
 
     {remove, Address} ->
-      {address_loop, NextNode} ! {remove, Address},
-      event_manager:send_event(node_logger, {remove, {Address}, NextNode}),
-      balancer(NextNode);
+      to_all_db_nodes({db_server, NextDB} ! {delete, Address}),
+      event_manager:send_event(node_logger, {remove, {Address}, NextDB}),
+      balancer(NextDB);
 
     {lookup, Address, Pid} ->
-      event_manager:send_event(node_logger, {lookup, {Address}, NextNode}),
-      {address_loop, NextNode} ! {lookup, Address, self()},
-      receive
-        Reply -> Pid ! Reply
-      after 1000 -> {error, timeout}
-      end,
-      balancer(NextNode);
+      {db_server, NextDB} ! {read, Address, Pid},
+      event_manager:send_event(node_logger, {lookup, {Address}, NextDB}),
+      balancer(NextDB);
 
     stop -> stop(), ok
   end.
+
+to_all_db_nodes(Message) ->
+  {db_server, ?DB_NODE1} ! Message,
+  {db_server, ?DB_NODE2} ! Message,
+  ok.

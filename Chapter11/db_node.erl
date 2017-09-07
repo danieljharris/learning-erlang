@@ -1,6 +1,5 @@
 -module(db_node).
 -export([start/0, stop/0]).
-% -export([write/2, read/1, delete/1]).
 
 -export([init/0, loop/1]).
 
